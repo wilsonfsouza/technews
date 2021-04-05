@@ -43,11 +43,15 @@
                 left: 0;
                 background: var(--yellow-500);
             }
-            
+
             &.active {
                 color: var(--white);
                 font-weight: bold;
             }
         }
+    }
+
+    > button {
+        margin-left: auto;
     }
 }
