@@ -1,4 +1,6 @@
 import { useSession, signIn } from 'next-auth/client';
+import { api } from '../../services/api';
+import { getStripeJs } from '../../services/stripe-js';
 import styles from './styles.module.scss';
 
 interface SubscribeButtonProps {
@@ -6,16 +8,26 @@ interface SubscribeButtonProps {
 }
 
 export function SubscribeButton({ priceId }: SubscribeButtonProps) {
-    // Check if user is logged in
     const [session] = useSession();
 
-    const handleSubscribe = () => {
+    const handleSubscribe = async () => {
         if (!session) {
             signIn('github');
             return;
         }
 
-        // Create checkout session
+        try {
+            const response = await api.post('/checkout')
+
+            const { sessionId } = response.data;
+
+            const stripe = await getStripeJs();
+
+            await stripe.redirectToCheckout({ sessionId });
+
+        } catch (err) {
+            alert(err.message);
+        }
     }
 
     return (
@@ -42,3 +54,20 @@ export function SubscribeButton({ priceId }: SubscribeButtonProps) {
 // Get user info from same-site cookies
 // request.cookies returns the saved token, but I want the user info
 // use next-auth method getSession
+
+// Save stripe customer id with fauna db user information
+
+// Webhook is a pattern to integrate 3rd party services that some event happened
+// they use this concept to warn our application about a problem that might have happened on their end
+// Ex: Stripe
+// App -> user register -> stripe creates customer and recurring subscription
+// User card expires - we need to cancel user subscription, but how can our app get that info? Stripe has a webhook for that
+// It usually notifies by a http endpoint that we provide (ex: denied card)
+// Stripe dashboard -> settings -> checkout settings -> configure webhook
+// add endpoint for website in production
+// use stripe cli for website in development/testing that will watch requests and responses from our webhooks
+
+// Listen webhooks
+// bash: stripe listen --forward-to localhost:3000/api/webhooks
+
+// stripe fake card for test: #: 4242 4242 4242 4242 with any expiration, security code, and other info
