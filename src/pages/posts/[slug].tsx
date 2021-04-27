@@ -36,12 +36,20 @@ export default function Post({ post }: PostProps) {
     );
 }
 
-// Toda pagina estatica nao vai ser protegida, todo mundo vai ter acesso a ela
 export const getServerSideProps: GetServerSideProps = async ({ req, params }) => {
     const session = await getSession({ req });
     const { slug } = params;
 
-    // if (!session) {}
+    console.log(session);
+
+    if (!session.activeSubscription) {
+        return {
+            redirect: {
+                destination: '/',
+                permanent: false,
+            }
+        }
+    }
 
     const prismic = getPrismicClient(req);
 
