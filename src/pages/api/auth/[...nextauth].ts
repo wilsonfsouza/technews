@@ -11,9 +11,13 @@ export default NextAuth({
             scope: 'read:user'
         }),
     ],
-    // jwt: {
-    //     signingKey: process.env.SIGNIN_KEY
-    // },
+    jwt: {
+        signingKey: process.env.JWT_SIGNING_PRIVATE_KEY,
+        verificationOptions: {
+            maxTokenAge: `${2 * 60 * 60}s`, // 2 hours
+            algorithms: ['HS512']
+        }
+    },
     callbacks: {
         async session(session) {
             try {
